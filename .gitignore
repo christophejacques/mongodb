@@ -1,0 +1,5 @@
+venv/
+env.bat
+.git/
+.mypy_cache/
+
