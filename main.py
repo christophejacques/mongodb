@@ -1,4 +1,6 @@
 from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.cursor import Cursor
 
 
 class DataBaseError(BaseException):
@@ -12,6 +14,7 @@ class CollectionError(BaseException):
 class MongoDB:
 
     client: MongoClient
+    collection: Collection
 
     def __init__(self, server: str = "", port: int = 0):
         # Configuration par defaut
@@ -28,9 +31,15 @@ class MongoDB:
         self.client = MongoClient(CONNECTION_STRING)
         self.use_database()
 
+    def get_database_names(self) -> list[str]:
+        return self.client.list_database_names()
+
     def use_database(self, dbname: str = ""):
+        if hasattr(self, "collection"):
+            del self.collection
+
         if dbname:
-            if dbname not in self.client.list_database_names():
+            if dbname not in self.get_database_names():
                 raise DataBaseError(f"La base de donnee '{dbname}' n'existe pas.")
             self.database = self.client.get_database(dbname)
             print(f"Using Database : {dbname}")
@@ -42,36 +51,45 @@ class MongoDB:
     def get_collections(self):
         return self.database.list_collection_names()
 
-    def get_collection(self, collection_name: str):
+    def get_collection(self, collection_name: str) -> Collection:
         if collection_name not in self.get_collections():
             raise CollectionError(f"Il n'y a pas de collection '{collection_name}' dans la database '{self.database.name}'.")
 
         self.collection = self.database.get_collection(collection_name)
+        print("Using Collection :", collection_name)
         return self.collection
 
-    def find(self, query, project: dict = {}):
+    def find(self, query, project: dict = {}) -> Cursor:
         if not hasattr(self, "collection"):
             raise CollectionError("Aucune collection n'est selectionnee.")
-
+        
         return self.collection.find(query, project)
 
-  
+
 if __name__ == "__main__":   
-  
+    
     # Get the database
     db = MongoDB()
     db.use_database("tutoriel")
 
-    # print(f"DataBase = {db.name}")
     print("Collections : ", end="")
     print(db.get_collections())
 
     print()
     db.get_collection("cities")
+    print("Indexes count:", len(list(db.collection.list_indexes())))
+    for index in db.collection.list_indexes():
+        # print(f"- {{'name': {index['name']!r}, 'v': {index['v']}, 'key': {index['key'].get('_id')}}}")
+        for cle in index.keys():
+            print(f"'{cle}' :", index[cle], end=' (')
+            print(index[cle].__class__.__name__, end='), ')
+
+    print()
+    print()
     query = {"continent": "Asia", "population": {"$gt": 20}}
     print("Query:", query)
-    print("Count:", db.collection.count_documents(query))
-
+    print("Docs Count:", db.collection.count_documents(query))
+    
     for doc in db.find(query, {"_id": 0}):
         print("-", doc)
 
