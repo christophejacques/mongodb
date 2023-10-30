@@ -51,7 +51,7 @@ class MongoDB:
     def get_collections(self):
         return self.database.list_collection_names()
 
-    def get_collection(self, collection_name: str) -> Collection:
+    def use_collection(self, collection_name: str) -> Collection:
         if collection_name not in self.get_collections():
             raise CollectionError(f"Il n'y a pas de collection '{collection_name}' dans la database '{self.database.name}'.")
 
@@ -59,11 +59,17 @@ class MongoDB:
         print("Using Collection :", collection_name)
         return self.collection
 
+    def count_documents(self, query):
+        return self.collection.count_documents(query)
+
     def find(self, query, project: dict = {}) -> Cursor:
         if not hasattr(self, "collection"):
             raise CollectionError("Aucune collection n'est selectionnee.")
         
         return self.collection.find(query, project)
+
+    def aggregate(self, pipeline):
+        return self.collection.aggregate(pipeline)
 
 
 if __name__ == "__main__":   
@@ -76,7 +82,7 @@ if __name__ == "__main__":
     print(db.get_collections())
 
     print()
-    db.get_collection("cities")
+    db.use_collection("cities")
     print("Indexes count:", len(list(db.collection.list_indexes())))
     for index in db.collection.list_indexes():
         # print(f"- {{'name': {index['name']!r}, 'v': {index['v']}, 'key': {index['key'].get('_id')}}}")
@@ -88,13 +94,13 @@ if __name__ == "__main__":
     print()
     query = {"continent": "Asia", "population": {"$gt": 20}}
     print("Query:", query)
-    print("Docs Count:", db.collection.count_documents(query))
+    print("Docs Count:", db.count_documents(query))
     
     for doc in db.find(query, {"_id": 0}):
         print("-", doc)
 
     print("\nAggregation:")
-    for doc in db.collection.aggregate(
+    for doc in db.aggregate(
      [{"$match": {"continent": {"$in": ['North America', 'Asia']}}},
      {"$sort": {"population": -1}},
      {"$group": {
