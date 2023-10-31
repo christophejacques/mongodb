@@ -2,7 +2,6 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.command_cursor import CommandCursor
-# from typing import Union, Any
 
 
 class DataBaseError(BaseException):
