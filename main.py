@@ -18,10 +18,6 @@ if __name__ == "__main__":
     db.use_collection("cities")
     print()
 
-    print(dir(db.collection))
-    print(db.collection.list_validators())
-    exit()
-
     # Get Indexes
     print("Indexes Count:", db.count_indexes())
     print("Indexes: ", end="")
