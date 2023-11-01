@@ -25,5 +25,7 @@ if __name__ == "__main__":
 # Suivi du lancement du service mongodb gerant la base de donnees
 db.use_database("local")
 db.use_collection("startup_log")
-for doc in db.find({}, {"_id": 0}):
-    print(f'- {doc["hostname"]} - {doc["startTime"]}')
+print("Dernier demarrage du service mongoDB: ", end="")
+print(db.aggregate([{"$group": {
+      "_id": {},
+      "latest_date": {"$max": '$startTime'}}}]).next().get("latest_date"))
