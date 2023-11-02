@@ -16,6 +16,12 @@ class dbDatabase:
 
     client: MongoClient
 
+    def __init__(self):
+        if not hasattr(dbDatabase, "client"):
+            print("dbDatabase initialisation .. ", end="")
+            dbDatabase.client = None
+            print("done.")
+
     def count_databases(self) -> int:
         # Compte le nombre de Bases de donnees
         return len(self.client.list_database_names())
@@ -44,6 +50,13 @@ class dbCollection(dbDatabase):
 
     collection: Collection
 
+    def __init__(self):
+        if not hasattr(dbCollection, "collection"):
+            dbDatabase.__init__(self)
+            print("dbCollection initialisation .. ", end="")
+            dbCollection.collection = None
+            print("done.")
+
     def count_collections(self) -> int:
         # Compte le nombre de collections
         return len(self.database.list_collection_names())
@@ -65,7 +78,16 @@ class dbCollection(dbDatabase):
         self.database.drop_collection(collection_name)
 
 
-class dbIndexes(dbCollection):
+class dbIndex(dbCollection):
+
+    Index: None
+
+    def __init__(self):
+        if not hasattr(dbIndex, "Index"):
+            dbCollection.__init__(self)
+            print("dbIndexes initialisation .. ", end="")
+            dbIndex.Index = None
+            print("done.")
 
     def count_indexes(self) -> int:
         # Compte le nombre d'index
@@ -85,7 +107,16 @@ class dbIndexes(dbCollection):
         return liste_indexes
 
 
-class dbDocuments(dbCollection):
+class dbDocument(dbIndex):
+
+    Document: None
+
+    def __init__(self):
+        if not hasattr(dbDocument, "Document"):
+            dbIndex.__init__(self)
+            print("dbDocument initialisation .. ", end="")
+            dbDocument.Document = None
+            print("done.")
 
     def count_documents(self, query) -> int:
         # Compte le nombre de documents d'une collection
@@ -107,7 +138,7 @@ class dbDocuments(dbCollection):
         return self.collection.aggregate(pipeline)
 
 
-class MongoDB(dbIndexes, dbDocuments):
+class MongoDB(dbDocument):
 
     def __init__(self, server: str = "", port: int = 0):
         # Configuration par defaut
@@ -126,4 +157,13 @@ class MongoDB(dbIndexes, dbDocuments):
 
 
 if __name__ == "__main__":
+    # assert isinstance(dbDatabase, type)
+    # assert isinstance(dbDatabase(), dbDatabase)
+    # assert isinstance(dbCollection, type)
+    # assert isinstance(dbCollection(), dbCollection)
+    # assert isinstance(dbIndex, type)
+    # assert isinstance(dbIndex(), dbIndex)
+    assert isinstance(dbDocument, type)
+    # assert isinstance(dbDocument(), dbDocument)
+
     print("Compilation OK")
