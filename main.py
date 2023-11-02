@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # Get Collections
     print("Collections count:", db.count_collections())
     print("Collections : ", end="")
-    print(db.get_collections())
+    print(db.get_collection_names())
 
     db.use_collection("cities")
     print()
