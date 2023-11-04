@@ -151,8 +151,8 @@ class MongoDB(dbDocument):
         CONNECTION_STRING = f"mongodb://{server}:{str(port)}/"
 
         # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
-        print(f"connecting to : {CONNECTION_STRING}")
-        self.client = MongoClient(CONNECTION_STRING)
+        print(f"connecting to : {CONNECTION_STRING} .. ", flush=True)
+        self.client = MongoClient(CONNECTION_STRING, timeoutMS=5000)
         self.use_database()
 
 
