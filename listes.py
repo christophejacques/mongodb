@@ -15,10 +15,10 @@ if __name__ == "__main__":
             db.use_collection(collection)
 
             # liste du nombre de documents et des cles
-            nb = db.count_documents({})
+            nb = db.count_documents()
             print("    > Count documents :", nb)
             if nb:
-                cles_document = db.find_one({}).keys()
+                cles_document = db.find_one().keys()
                 print("    > Cles:", list(cles_document))
         print()
 

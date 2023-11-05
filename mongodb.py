@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.command_cursor import CommandCursor
+from pymongo.results import InsertOneResult, InsertManyResult, UpdateResult, DeleteResult
 
 
 class DataBaseError(BaseException):
@@ -56,6 +57,13 @@ class dbCollection(dbDatabase):
             print("dbCollection initialisation .. ", end="")
             dbCollection.collection = None
             print("done.")
+
+    def create_collection(self, collection_name: str) -> Collection:
+        self.collection = self.database.create_collection(name=collection_name)
+        return self.collection
+
+    def rename_collection(self, nouveau_nom: str) -> None:
+        self.collection.rename(new_name=nouveau_nom)
 
     def count_collections(self) -> int:
         # Compte le nombre de collections
@@ -118,11 +126,23 @@ class dbDocument(dbIndex):
             dbDocument.Document = None
             print("done.")
 
-    def count_documents(self, query) -> int:
+    def insert_one(self, document: dict) -> InsertOneResult:
+        # insert un seul document
+        return self.collection.insert_one(document)
+
+    def insert_many(self, documents: list[dict]) -> InsertManyResult:
+        # insert plusieurs documents
+        return self.collection.insert_many(documents)
+
+    def count_documents(self, query: dict = {}) -> int:
         # Compte le nombre de documents d'une collection
         return self.collection.count_documents(query)
 
-    def find_one(self, query, fields: dict = {}):
+    def dictinct(self, key: str, filtre: dict = {}) -> list:
+        # ramene la list des valeurs unique de la cle 'key' correspondant au filtre
+        return self.collection.distinct(key, filtre)
+
+    def find_one(self, query: dict = {}, fields: dict = {}):
         # Retourne un seul document d'une collection
         return self.collection.find_one(query, fields)
 
@@ -133,9 +153,25 @@ class dbDocument(dbIndex):
         
         return self.collection.find(query, fields)
 
+    def update_one(self, filtre: dict, update: dict) -> UpdateResult:
+        # Mise à jour d'un seul document
+        return self.collection.update_one(filtre, update)
+
+    def update_many(self, filtre: dict, update: dict) -> UpdateResult:
+        # Mise à jour des documents correspondants au filtre
+        return self.collection.update_one(filtre, update)
+
     def aggregate(self, pipeline) -> CommandCursor:
         # Retourne tous les documents d'une collection par agggregation
         return self.collection.aggregate(pipeline)
+
+    def delete_one(self, filtre: dict) -> DeleteResult:
+        # suppression d'un seul document
+        return self.collection.delete_one(filtre)
+
+    def delete_many(self, filtre: dict) -> DeleteResult:
+        # suppression de tous les documents correspondants au filtre
+        return self.collection.delete_many(filtre)
 
 
 class MongoDB(dbDocument):
@@ -155,6 +191,11 @@ class MongoDB(dbDocument):
         self.client = MongoClient(CONNECTION_STRING, timeoutMS=5000)
         self.use_database()
 
+    def close(self) -> None:
+        print("Deconnecting from mongodb .. ", flush=True, end="")
+        self.client.close()
+        print("done")
+
 
 if __name__ == "__main__":
     # assert isinstance(dbDatabase, type)
@@ -164,6 +205,6 @@ if __name__ == "__main__":
     # assert isinstance(dbIndex, type)
     # assert isinstance(dbIndex(), dbIndex)
     assert isinstance(dbDocument, type)
-    # assert isinstance(dbDocument(), dbDocument)
+    assert isinstance(dbDocument(), dbDocument)
 
     print("Compilation OK")
