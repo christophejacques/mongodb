@@ -3,6 +3,12 @@ from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.command_cursor import CommandCursor
 from pymongo.results import InsertOneResult, InsertManyResult, UpdateResult, DeleteResult
+from urllib3.util import parse_url
+from typing import Optional
+
+
+class ConnectionError(BaseException):
+    pass
 
 
 class DataBaseError(BaseException):
@@ -22,6 +28,9 @@ class dbDatabase:
             print("dbDatabase initialisation .. ", end="")
             dbDatabase.client = None
             print("done.")
+
+    def create_database(self, dbname: str):
+        self.database = self.client[dbname]
 
     def count_databases(self) -> int:
         # Compte le nombre de Bases de donnees
@@ -45,6 +54,10 @@ class dbDatabase:
         else:
             dbname = self.client.list_database_names()[0]
             self.database = self.client.get_database(dbname)
+
+    def drop_database(self, database=None):
+        baseDeDonnees = self.database if database is None else database
+        self.client.drop_database(baseDeDonnees)
 
 
 class dbCollection(dbDatabase):
@@ -176,11 +189,17 @@ class dbDocument(dbIndex):
 
 class MongoDB(dbDocument):
 
-    def __init__(self, server: str = "", port: int = 0):
+    def __init__(self, host: str = "", port: Optional[int] = None):
+        if port is None:
+            _, _, server, port, *_ = parse_url(host)
+        else:
+            server = host
+
         # Configuration par defaut
-        if server.strip() == "":
+        if server is None:
             server = "localhost"
-        if port == 0:
+
+        if port is None:
             port = 27017
 
         # Provide the mongodb url to connect python to mongodb using pymongo
@@ -204,7 +223,10 @@ if __name__ == "__main__":
     # assert isinstance(dbCollection(), dbCollection)
     # assert isinstance(dbIndex, type)
     # assert isinstance(dbIndex(), dbIndex)
-    assert isinstance(dbDocument, type)
-    assert isinstance(dbDocument(), dbDocument)
+    # assert isinstance(dbDocument, type)
+    # assert isinstance(dbDocument(), dbDocument)
+
+    db = MongoDB()
+    db.close()
 
     print("Compilation OK")
