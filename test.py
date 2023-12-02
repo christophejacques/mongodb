@@ -77,16 +77,11 @@ def ex2():
             datestr = doc.get("datestr")
             if isinstance(date, datetime):
                 print("> datetime:", date.astimezone(), f"({date.astimezone().tzname()})")
-            else:
-                print("??? :", date)
 
             if isinstance(datestr, str):
                 date = datetime.fromisoformat(datestr).astimezone()
                 print("> string  :", date, f"({date.tzname()})")
-            else:
-                print("??? :", datestr)
 
-            # print("date:", datetime.fromisoformat(doc.get("date")))
     else:
         print("error")
 
@@ -119,4 +114,4 @@ def ex4():
 if __name__ == "__main__":   
     # initialisation de l'acces a la mongobd 
     db = MongoDB()
-    ex1()
+    ex2()

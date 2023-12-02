@@ -18,7 +18,8 @@ if __name__ == "__main__":
             nb = db.count_documents()
             print("    > Count documents :", nb)
             if nb:
-                cles_document = db.find_one().keys()
+                # cles_document = db.get_field_names()
+                cles_document = db.get_all_fields_stats()
                 print("    > Cles:", list(cles_document))
         print()
 

@@ -7,6 +7,7 @@ from pymongo.errors import CollectionInvalid
 
 from urllib3.util import parse_url
 from typing import Optional
+import unittest
 
 
 def dprint(* args, **kwargs):
@@ -92,6 +93,8 @@ class dbDatabase(dbClient):
             dbname = self._client.list_database_names()[0]
             self._database = self._client.get_database(dbname)
             dprint(f"Using default Database : {dbname}")
+
+        return self._database
 
     def drop_database(self, database=None):
         baseDeDonnees = self._database if database is None else database
@@ -210,6 +213,17 @@ class dbDocument(dbIndex):
         # ramene la list des valeurs unique de la cle 'key' correspondant au filtre
         return self._collection.distinct(key, filtre)
 
+    def get_all_fields_stats(self) -> dict:
+        champs: dict = dict()
+
+        for document in self._collection.find({}):
+            for champ in document.keys():
+                if champs.get(champ):
+                    champs[champ] += 1
+                else:
+                    champs[champ] = 1
+        return champs        
+
     def get_field_names(self) -> list:
         # Liste les noms des Champs de la collection
         return self.find_one().keys()
@@ -262,11 +276,44 @@ class MongoDB(dbDocument):
             return super().get_database(name)
 
 
+class MongoDBTest(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print(*args)
+
+    def test1_client(self):
+        self.db = MongoDB()
+        self.db.close()
+
+    def test2_database(self):
+        self.db = MongoDB()
+        self.assertEqual(self.db.use_database("tutoriel").name, "tutoriel")
+        self.db.close()
+
+    def test3_collection(self):
+        self.db = MongoDB()
+        self.db.use_database("tutoriel")
+        self.assertTrue(self.db.has_collection("cities"))
+        self.assertEqual(self.db.use_collection("cities").name, "cities")
+        self.db.close()
+
+    def test4_indexes(self):
+        self.db = MongoDB()
+        self.db.use_database("tutoriel")
+        self.db.use_collection("cities")
+        self.assertEqual(",".join(self.db.get_indexe_names()), "_id")
+        self.db.close()
+
+    def test5_fields(self):
+        self.db = MongoDB()
+        self.db.use_database("tutoriel")
+        self.db.use_collection("cities")
+        self.assertEqual("|".join(self.db.get_field_names()), "_id|name|country|continent|population")
+        self.db.close()
+
+
 if __name__ == "__main__":
-    # assert isinstance(dbDocument, type)
-    # assert isinstance(dbDocument(), dbDocument)
 
-    db = MongoDB()
-    db.close()
-
-    print("Compilation OK")
+    dbClient.DEBUG = False
+    unittest.main()
