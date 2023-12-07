@@ -62,6 +62,9 @@ class dbClient:
 
 class dbDatabase(dbClient):
 
+    def has_database(self, dbname: str):
+        return dbname in self.get_database_names()
+
     def create_database(self, dbname: str):
         self._database = self._client[dbname]
         dprint(f"Database {dbname!r} creee.")
@@ -268,7 +271,6 @@ class MongoDB(dbDocument):
             return super().__getattribute__(name)
 
         elif name in dir(dbDocument):
-            # print(name, "in dir(Doc)")
             return super().__getattribute__(name)
 
         else:
@@ -277,43 +279,43 @@ class MongoDB(dbDocument):
 
 
 class MongoDBTest(unittest.TestCase):
+    db: MongoDB | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         print(*args)
 
     def test1_client(self):
-        self.db = MongoDB()
-        self.db.close()
+        self.assertIsNotNone(self.db)
 
     def test2_database(self):
-        self.db = MongoDB()
+        self.assertIsNotNone(self.db)
+        self.assertTrue(self.db.has_database("tutoriel"))
         self.assertEqual(self.db.use_database("tutoriel").name, "tutoriel")
-        self.db.close()
 
     def test3_collection(self):
-        self.db = MongoDB()
-        self.db.use_database("tutoriel")
+        self.assertIsNotNone(self.db)
+        self.assertTrue(self.db.has_database("tutoriel"))
         self.assertTrue(self.db.has_collection("cities"))
         self.assertEqual(self.db.use_collection("cities").name, "cities")
-        self.db.close()
 
     def test4_indexes(self):
-        self.db = MongoDB()
-        self.db.use_database("tutoriel")
-        self.db.use_collection("cities")
+        self.assertIsNotNone(self.db)
+        self.assertTrue(self.db.has_database("tutoriel"))
+        self.assertTrue(self.db.has_collection("cities"))
         self.assertEqual(",".join(self.db.get_indexe_names()), "_id")
-        self.db.close()
 
     def test5_fields(self):
-        self.db = MongoDB()
-        self.db.use_database("tutoriel")
-        self.db.use_collection("cities")
+        self.assertIsNotNone(self.db)
+        self.assertTrue(self.db.has_database("tutoriel"))
+        self.assertTrue(self.db.has_collection("cities"))
         self.assertEqual("|".join(self.db.get_field_names()), "_id|name|country|continent|population")
+
+    def test9_close(self):
+        self.assertIsNotNone(self.db)
         self.db.close()
 
 
 if __name__ == "__main__":
-
-    dbClient.DEBUG = False
+    MongoDBTest.db = MongoDB()
     unittest.main()
